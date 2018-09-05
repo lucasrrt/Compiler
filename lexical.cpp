@@ -1,4 +1,8 @@
-#include<iostream>
+#include <iostream>
+#include <map>
+#include <vector>
+#include <sstream>
+#include <fstream>
 
 #define MAX_CONSTS 100
 #define MAX_ID_LEN 100
@@ -21,21 +25,33 @@ typedef enum {
 	UNKNOWN
 } t_token;
 
-t_token searchKeyWord(char *name);
-//TODO return the enum
-//use a vector of reserved words, and use binary search
-//token is the position of the word
+//TODO use a vector of reserved words instead of map, and use binary search
+map<string, t_token> reserved_words;
+
+t_token searchKeyWord(char *name) {
+	return reserved_words[name];
+}
 
 //Se uma palavra não for reservada, o analisador deve determinar
 //o token secundário (nome).
-//Tabela de identificadores com os token ID e o token secundário 
+//Tabela de identificadores com o token ID e o token secundário 
 //com o nome daquele identificador, que pode ser um número inteiro
 //que indica a ordem em que ele foi lido no arquivo de entrada.
 //Cada identificador pode aparecer somente uma vez nessa tabela
 //Hash é a melhor implementação dessa tabela
 
-int searchName( char *name );
-//TODO Inserir ou buscar identificadores na tabela de nomes.
+vector<string> identifiers;
+
+int searchName( char *name ) {
+	vector<string>::iterator it = find(identifiers.begin(), identifiers.end(), name);
+	if( it == identifiers.end() ) {
+		cout << "Element not found" << endl;
+		identifiers.push_back(name);
+		return identifiers.size() - 1;
+	} else {
+		return it - identifiers.begin();
+	}
+}
 
 //literais são CHARACTER, NUMERAL e STRINGVAL
 //também devem ser armazenados para fácil acesso posterior no programa.
@@ -45,26 +61,63 @@ typedef  struct {
 		char   cVal;
 		int    nVal;
 		char * sVal;
-	}   _;
+	}   val;
 }   t_const;
 
 //constantes - posição indicará token secundário
 t_const vConsts[MAX_CONSTS];
 int nNumConsts = 0; //número total de constantes
 
-//TODO Inclusão de constantes de cada tipo e retornar
-//a posição onde foram inseridas (nNumConsts)
-int addCharConst (char c);
-int addIntConst (char *n); //The number it is actually a string of digits
-int addStringConst (char *c);
+int addCharConst (char c) {
+	t_const new_const;
+	new_const.type = '0';
+	new_const.val.cVal = c;
 
-//TODO Recuperação do valor de uma constante
-int getCharConst (int n);
-int getIntConst (int n);
-int getStringConst (int n);
+	vConsts[nNumConsts] = new_const;
+	nNumConsts++;
 
-//TODO Lê os caracteres do arquivo de entrada
-char readChar(void);
+	return nNumConsts - 1;
+}
+int addIntConst (char *n) { //The number it is actually a string of digits
+	t_const new_const;
+	new_const.type = '1';
+	stringstream value(n);
+	value >> new_const.val.nVal;
+
+	vConsts[nNumConsts] = new_const;
+	nNumConsts++;
+
+	return nNumConsts - 1;
+} 
+int addStringConst (char *c) {
+	t_const new_const;
+	new_const.type = '2';
+	new_const.val.sVal = c;
+
+	vConsts[nNumConsts] = new_const;
+	nNumConsts++;
+
+	return nNumConsts - 1;
+}
+
+char getCharConst (int n) {
+	return vConsts[n].val.cVal;
+}
+int getIntConst (int n) {
+	return vConsts[n].val.nVal;
+}
+char *getStringConst (int n) {
+	return vConsts[n].val.sVal;
+}
+
+ifstream file;
+char readChar(void) {
+	char c;
+	if(file.get(c))
+		return c;
+	else
+		return 0;
+}
 
 //armazenar o caractere lido em uma variável
 char nextChar = '\x20'; // para garantir o funcionamento na 1ª chamada da nextToken()
@@ -150,5 +203,65 @@ t_token nextToken(void) {
 }
 
 int main() {
-	cout << "wahey" << endl;
+	reserved_words["array"] = ARRAY;
+	reserved_words["boolean"] = BOOLEAN;
+	reserved_words["break"] = BREAK;
+	reserved_words["char"] = CHAR;
+	reserved_words["continue"] = CONTINUE;
+	reserved_words["do"] = DO;
+	reserved_words["else"] = ELSE;
+	reserved_words["false"] = FALSE;
+	reserved_words["function"] = FUNCTION;
+	reserved_words["if"] = IF;
+	reserved_words["integer"] = INTEGER;
+	reserved_words["of"] = OF;
+	reserved_words["string"] = STRING;
+	reserved_words["struct"] = STRUCT;
+	reserved_words["true"] = TRUE;
+	reserved_words["type"] = TYPE;
+	reserved_words["var"] = VAR;
+	reserved_words["while"] = WHILE;
+
+
+	//simbolos
+	reserved_words["colon"] = COLON;
+	reserved_words["semi_colon"] = SEMI_COLON;
+	reserved_words["comma"] = COMMA;
+	reserved_words["equals"] = EQUALS;
+	reserved_words["left_square"] = LEFT_SQUARE;
+	reserved_words["right_square"] = RIGHT_SQUARE;
+	reserved_words["left_braces"] = LEFT_BRACES;
+	reserved_words["right_braces"] = RIGHT_BRACES;
+	reserved_words["left_parenthesis"] = LEFT_PARENTHESIS;
+	reserved_words["right_parenthesis"] = RIGHT_PARENTHESIS;
+	reserved_words["and"] = AND;
+	reserved_words["or"] = OR;
+	reserved_words["less_than"] = LESS_THAN;
+	reserved_words["greater_than"] = GREATER_THAN;
+	reserved_words["less_or_equal"] = LESS_OR_EQUAL;
+	reserved_words["greater_or_equal"] = GREATER_OR_EQUAL;
+	reserved_words["not_equal"] = NOT_EQUAL;
+	reserved_words["equal_equal"] = EQUAL_EQUAL;
+	reserved_words["plus"] = PLUS;
+	reserved_words["plus_plus"] = PLUS_PLUS;
+	reserved_words["minus"] = MINUS;
+	reserved_words["minus_minus"] = MINUS_MINUS;
+	reserved_words["times"] = TIMES;
+	reserved_words["divide"] = DIVIDE;
+	reserved_words["dot"] = DOT;
+	reserved_words["not"] = NOT;
+
+	//regular tokens
+	reserved_words["character"] = CHARACTER;
+	reserved_words["numeral"] = NUMERAL;
+	reserved_words["stringval"] = STRINGVAL;
+	reserved_words["id"] = ID;
+
+	//unknown token
+	reserved_words["unknown"] = UNKNOWN;
+
+	file.open("example");
+
+	//cout << "array: " << getStringConst(2) << endl;
 }
+
