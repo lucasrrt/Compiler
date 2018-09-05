@@ -9,19 +9,21 @@
 #define MAX_STR_LEN 100
 #define MAX_NUM_LEN 100
 
+#define wahey "wahey"
+
 using namespace std;
 
 typedef enum {
-	//reserved words
+	//reserved words (0 ~ 17)
 	ARRAY, BOOLEAN, BREAK, CHAR, CONTINUE, DO, ELSE, FALSE, FUNCTION, IF, INTEGER, OF, STRING, STRUCT, TRUE, TYPE, VAR, WHILE, 
 
-	//simbolos
+	//simbolos (18 ~ 43)
 	COLON, SEMI_COLON, COMMA, EQUALS, LEFT_SQUARE, RIGHT_SQUARE, LEFT_BRACES, RIGHT_BRACES, LEFT_PARENTHESIS, RIGHT_PARENTHESIS, AND, OR, LESS_THAN, GREATER_THAN, LESS_OR_EQUAL, GREATER_OR_EQUAL, NOT_EQUAL, EQUAL_EQUAL, PLUS, PLUS_PLUS, MINUS, MINUS_MINUS, TIMES, DIVIDE, DOT, NOT,
 
-	//regular tokens
+	//regular tokens (44 ~ 47)
 	CHARACTER, NUMERAL, STRINGVAL, ID,
 
-	//unknown token
+	//unknown token (48)
 	UNKNOWN
 } t_token;
 
@@ -113,10 +115,8 @@ char *getStringConst (int n) {
 ifstream file;
 char readChar(void) {
 	char c;
-	if(file.get(c))
-		return c;
-	else
-		return 0;
+	file.get(c);
+	return c;
 }
 
 //armazenar o caractere lido em uma variável
@@ -137,8 +137,8 @@ t_token nextToken(void) {
 		do {
 			text[i++] = nextChar;
 			nextChar = readChar();
-		} while( isalnum(nextChar || nextChar == '_') );
-	text[i] = '\0';
+		} while( isalnum(nextChar) || nextChar == '_' );
+		text[i] = '\0';
 
 		token = searchKeyWord( text );
 		if( token == ID ) {
@@ -183,6 +183,102 @@ t_token nextToken(void) {
 				token = COLON;
 				break;
 
+			case ';':
+				nextChar = readChar();
+				token = SEMI_COLON;
+				break;
+
+			case ',':
+				nextChar = readChar();
+				token = COMMA;
+				break;
+
+			case '=':
+				nextChar = readChar();
+				if(nextChar == '=') {
+					token = EQUAL_EQUAL;
+					nextChar = readChar();
+				} else {
+					token = EQUALS;
+				}
+				break;
+
+			case '[':
+				nextChar = readChar();
+				token = LEFT_SQUARE;
+				break;
+
+			case ']':
+				nextChar = readChar();
+				token = RIGHT_SQUARE;
+				break;
+
+			case '{':
+				nextChar = readChar();
+				token = LEFT_BRACES;
+				break;
+
+			case '}':
+				nextChar = readChar();
+				token = RIGHT_BRACES;
+				break;
+
+			case '(':
+				nextChar = readChar();
+				token = LEFT_PARENTHESIS;
+				break;
+
+			case ')':
+				nextChar = readChar();
+				token = RIGHT_PARENTHESIS;
+				break;
+
+			case '&':
+				nextChar = readChar();
+				if(nextChar == '&') {
+					token = AND;
+					nextChar = readChar();
+				}
+				break;
+
+			case '|':
+				nextChar = readChar();
+				if(nextChar == '|') {
+					token = OR;
+					nextChar = readChar();
+				}
+				break;
+
+			case '<':
+				nextChar = readChar();
+				if(nextChar == '=') {
+					token = LESS_OR_EQUAL;
+					nextChar = readChar();
+				} else {
+					token = LESS_THAN;
+				}
+				break;
+
+			case '>':
+				nextChar = readChar();
+				if(nextChar == '=') {
+					token = GREATER_OR_EQUAL;
+					nextChar = readChar();
+				} else {
+					token = GREATER_THAN;
+				}
+				break;
+
+			case '!':
+				nextChar = readChar();
+				if(nextChar == '=') {
+					token = NOT_EQUAL;
+					nextChar = readChar();
+				} else {
+					token = NOT;
+				}
+				break;
+
 			case '+':
 				nextChar = readChar();
 				if(nextChar == '+') {
@@ -193,12 +289,39 @@ t_token nextToken(void) {
 				}
 				break;
 
+			case '-':
+				nextChar = readChar();
+				if(nextChar == '-') {
+					token = MINUS_MINUS;
+					nextChar = readChar();
+				} else {
+					token = MINUS;
+				}
+				break;
+
+			case '*':
+				nextChar = readChar();
+				token = TIMES;
+				break;
+
+			case '/':
+				nextChar = readChar();
+				token = DIVIDE;
+				break;
+
+			case '.':
+				nextChar = readChar();
+				token = DOT;
+				break;
+
 			//TODO ALL the other cases
 
 			default:
+				cout << "Unknown token" << endl;
 				token = UNKNOWN;
 		}
 
+	cout << token << endl;
 	return token;
 }
 
@@ -261,7 +384,7 @@ int main() {
 	reserved_words["unknown"] = UNKNOWN;
 
 	file.open("example");
-
-	//cout << "array: " << getStringConst(2) << endl;
+	
+	while(nextToken() != 48);
 }
 
